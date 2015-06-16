@@ -20,7 +20,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     private SlidingPuzzleGame slidingPuzzleGame;
     private int cols;
     private int rows;
-    private int padding = 4;
+    public static int PADDING = 4;
 
     private View.OnClickListener stickOnClickListener;
     private View.OnTouchListener stickOnTouchListener;
@@ -71,11 +71,11 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         stickOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                buttonPressed(v);
+                //buttonPressed(v);
             }
         };
 
-        stickOnTouchListener = new StickTouchListener(this, slidingPuzzleGame);
+
 
         slidingPuzzleGame.registerListener(this);
 
@@ -91,7 +91,6 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         });
 
 
-
     }
 
     private void paintButtons() {
@@ -101,36 +100,44 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         Bitmap bitMap = BitmapFactory.decodeResource(getResources(), R.drawable.climbing);
 
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * padding);
-        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * padding);
-        int wButton =getStickWidth();
+        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * PADDING);
+        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * PADDING);
+        int wButton = getStickWidth();
         int hButton = getStickHeight();
+        PADDING = 0;
         int counter = 1;
 
         bitMap = Bitmap.createScaledBitmap(bitMap, wLayout, hLayout, true);
 
         //Add buttons (Sticks)
-        padding = 0;
 
         for (int j = 0; j < rows; j++) {
             for (int i = 0; i < cols; i++) {
 
                 if (i != cols - 1 || j != rows - 1) {
                     final Button button = new Button(this);
-                    int x = (i * wButton) + padding;
-                    int y = (j * hButton) + padding;
+                    int x = (i * wButton);
+                    int y = (j * hButton);
                     AbsoluteLayout.LayoutParams lp = new AbsoluteLayout.LayoutParams(wButton, hButton, x, y);
                     button.setLayoutParams(lp);
                     button.setText(String.valueOf(counter++));
 
-                    Bitmap square = Bitmap.createBitmap(bitMap, x, y, wButton - padding, hButton - padding);
+                    Bitmap square = Bitmap.createBitmap(bitMap, x, y, wButton, hButton);
                     button.setBackgroundDrawable(new BitmapDrawable(getResources(), square).getCurrent());
 
-                    //Listeners
-                    button.setOnClickListener(stickOnClickListener);
-                    button.setOnTouchListener(stickOnTouchListener);
 
                     mainLayout.addView(button);
+
+                    //Listeners
+                    if (stickOnTouchListener == null) {
+                        int[] baseLocation = new int[2];
+                        findViewById(R.id.layoutMain).getLocationOnScreen(baseLocation);
+
+                        stickOnTouchListener = new StickTouchListener(this, slidingPuzzleGame,baseLocation[0], baseLocation[1]);
+                    }
+
+                    button.setOnClickListener(stickOnClickListener);
+                    button.setOnTouchListener(stickOnTouchListener);
                 }
             }
         }
@@ -142,17 +149,13 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         int idButton = Integer.valueOf(((Button) v).getText().toString());
         slidingPuzzleGame.play(idButton);
 
-        repaintGame();
 
-        if (slidingPuzzleGame.isSolved()) {
-            Toast.makeText(this, "The game is finished", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void repaintGame() {
 
         for (int j = 0; j < rows; j++) {
-        for (int i = 0; i < cols; i++) {
+            for (int i = 0; i < cols; i++) {
 
                 int idButton = slidingPuzzleGame.getCell(i, j);
                 Button button = findButtonById(idButton);
@@ -170,7 +173,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     private int getStickWidth() {
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * padding);
+        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * PADDING);
 
         int wButton = wLayout / cols;
 
@@ -179,7 +182,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     private int getStickHeight() {
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * padding);
+        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * PADDING);
         int hButton = hLayout / rows;
 
         return hButton;
@@ -202,7 +205,16 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     }
 
     @Override
-    public void onPlay() {
+    public void onPlayListener() {
+        repaintGame();
+
+        if (slidingPuzzleGame.isSolved()) {
+            Toast.makeText(this, "The game is finished", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRepaintListener() {
         repaintGame();
     }
 }

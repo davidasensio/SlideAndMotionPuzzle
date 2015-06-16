@@ -179,7 +179,7 @@ public class SlidingPuzzleGame {
 
 
     public boolean isSolved() {
-        boolean result = true;
+        boolean result = false; //FIXME poner a true
 
         for (int i = 0; i < this.cols; i++) {
             for (int j = 0; j < this.rows; j++) {
@@ -285,12 +285,20 @@ public class SlidingPuzzleGame {
 
     public void firePlayEvent() {
         for (SlidingPuzzleListener listener: listeners) {
-            listener.onPlay();
+            listener.onPlayListener();
         }
+        Log.d(LOG_TAG, "Event Play triggered");
+
     }
+
+    public void fireRepaintEvent() {
+        for (SlidingPuzzleListener listener: listeners) {
+            listener.onRepaintListener();
+        }
+        Log.d(LOG_TAG, "Event Repaint triggered");
+    }
+
     //Getters & Setters
-
-
     public int getCols() {
         return cols;
     }

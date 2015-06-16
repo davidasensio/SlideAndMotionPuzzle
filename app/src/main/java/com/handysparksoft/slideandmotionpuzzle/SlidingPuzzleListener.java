@@ -5,5 +5,7 @@ package com.handysparksoft.slideandmotionpuzzle;
  */
 public interface SlidingPuzzleListener {
 
-    void onPlay();
+    void onPlayListener();
+
+    void onRepaintListener();
 }
