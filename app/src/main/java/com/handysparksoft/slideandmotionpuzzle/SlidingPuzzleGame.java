@@ -2,6 +2,9 @@ package com.handysparksoft.slideandmotionpuzzle;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by davasens on 6/12/2015.
  */
@@ -16,6 +19,7 @@ public class SlidingPuzzleGame {
     private int puzzleSolution[][];
 
     private boolean finished = false;
+    private List<SlidingPuzzleListener> listeners = new ArrayList<SlidingPuzzleListener>();
 
     //Default constructor 3 X 3
     public SlidingPuzzleGame() {
@@ -45,6 +49,8 @@ public class SlidingPuzzleGame {
         puzzleSolution[cols - 1][rows - 1] = 0;
     }
 
+
+
     public void start() {
         shuffle2D(puzzle);
         finished = false;
@@ -69,7 +75,15 @@ public class SlidingPuzzleGame {
         return result;
     }
 
-    ;
+    private boolean canMove(int idStick) {
+        boolean result = false;
+        int[] coordsById = getCoordsById(idStick);
+
+        if (coordsById != null) {
+            result = canMove(coordsById[0], coordsById[1]);
+        }
+        return result;
+    }
 
     private void move(int i, int j) {
         int cellValue = getCell(i, j);
@@ -102,6 +116,9 @@ public class SlidingPuzzleGame {
                 if (canMove) {
                     Log.d(LOG_TAG, "can be moved");
                     move(i, j);
+
+                    //Trigger event Play
+					slidingPuzzleGame.firePlayEvent();
                 } else {
                     Log.d(LOG_TAG, "can NOT be moved");
                 }
@@ -116,18 +133,48 @@ public class SlidingPuzzleGame {
     }
 
     public void play(int idStick) {
-        boolean played = false;
+        int[] coordsById = getCoordsById(idStick);
+        if (coordsById != null) {
+            int i = coordsById[0];
+            int j = coordsById[1];
+            play(i, j);
+        }
+    }
+
+    public int[] getCoordsById(int idStick) {
+        int[] result = null;
+        boolean finded = false;
+
         for (int i = 0; i < this.cols; i++) {
             for (int j = 0; j < this.rows; j++) {
-
-                if (!played && puzzle[i][j] == idStick) {
-                    play(i, j);
-                    played = true;
+                if (!finded && puzzle[i][j] == idStick) {
+                    result = new int[2];
+                    result[0] = i;
+                    result[1] = j;
+                    finded = true;
                     break;
                 }
-
             }
         }
+        return result;
+    }
+
+    public int[] getHoleCoords() {
+        int[] result = null;
+        boolean finded = false;
+
+        for (int i = 0; i < this.cols; i++) {
+            for (int j = 0; j < this.rows; j++) {
+                if (!finded && puzzle[i][j] == HOLE) {
+                    result = new int[2];
+                    result[0] = i;
+                    result[1] = j;
+                    finded = true;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
 
@@ -155,6 +202,36 @@ public class SlidingPuzzleGame {
             solved = this.isSolved();
             counter++;
         }
+
+    }
+
+    public boolean canMoveInXAxis(int idStick) {
+        boolean result = false;
+        int[] coordsById = getCoordsById(idStick);
+        if (coordsById != null) {
+            int i = coordsById[0];
+            int j = coordsById[1];
+            if (getCell(i + 1, j) == HOLE || getCell(i - 1, j) == HOLE) {
+                result = true;
+            }
+        }
+
+        return result;
+
+    }
+
+    public boolean canMoveInYAxis(int idStick) {
+        boolean result = false;
+        int[] coordsById = getCoordsById(idStick);
+        if (coordsById != null) {
+            int i = coordsById[0];
+            int j = coordsById[1];
+            if (getCell(i, j + 1) == HOLE || getCell(i, j - 1) == HOLE) {
+                result = true;
+            }
+        }
+
+        return result;
 
     }
 
@@ -198,6 +275,19 @@ public class SlidingPuzzleGame {
         return array;
     }
 
+    public void registerListener(SlidingPuzzleListener listener) {
+        listeners.add(listener);
+    }
+
+    public void unregisterListener(SlidingPuzzleListener listener) {
+        listeners.remove(listener);
+    }
+
+    public void firePlayEvent() {
+        for (SlidingPuzzleListener listener: listeners) {
+            listener.onPlay();
+        }
+    }
     //Getters & Setters
 
 
@@ -208,4 +298,6 @@ public class SlidingPuzzleGame {
     public int getRows() {
         return rows;
     }
+
+
 }

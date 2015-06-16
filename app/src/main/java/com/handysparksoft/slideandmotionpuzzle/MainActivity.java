@@ -14,7 +14,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements SlidingPuzzleListener {
 
     private boolean initialized = false;
     private SlidingPuzzleGame slidingPuzzleGame;
@@ -75,7 +75,9 @@ public class MainActivity extends ActionBarActivity {
             }
         };
 
-        stickOnTouchListener = new StickTouchListener(this);
+        stickOnTouchListener = new StickTouchListener(this, slidingPuzzleGame);
+
+        slidingPuzzleGame.registerListener(this);
 
         AbsoluteLayout absoluteLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
         absoluteLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -87,6 +89,8 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
         });
+
+
 
     }
 
@@ -197,6 +201,9 @@ public class MainActivity extends ActionBarActivity {
         return result;
     }
 
-
+    @Override
+    public void onPlay() {
+        repaintGame();
+    }
 }
 
