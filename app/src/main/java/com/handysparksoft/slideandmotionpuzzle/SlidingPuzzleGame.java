@@ -118,7 +118,7 @@ public class SlidingPuzzleGame {
                     move(i, j);
 
                     //Trigger event Play
-					slidingPuzzleGame.firePlayEvent();
+					firePlayEvent();
                 } else {
                     Log.d(LOG_TAG, "can NOT be moved");
                 }
