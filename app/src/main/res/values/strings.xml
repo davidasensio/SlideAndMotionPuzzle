@@ -4,4 +4,48 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="action_start">Start</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="dimensions_entries">
+        <item>3 X 3</item>
+        <item>4 X 4</item>
+        <item>5 X 5</item>
+        <item>6 X 6</item>
+        <item>7 X 7</item>
+    </string-array>
+
+    <string-array name="dimensions_values">
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+    <string-array name="level_entries">
+        <item>Low</item>
+        <item>Meidum</item>
+        <item>High</item>
+    </string-array>
+
+    <string-array name="level_values">
+        <item>1</item>
+        <item>3</item>
+        <item>5</item>
+    </string-array>
+
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Broadcast-->
+    <string name="broadcast_action_init" translatable="false">com.handysparksoft.slideandmotionpuzzle.action.INIT</string>
+    <string name="broadcast_action_numbers" translatable="false">com.handysparksoft.slideandmotionpuzzle.action.NUMBERS</string>
+
+    <!--preferences -->
+    <string name="pref_list_dimension" >pref_list_dimension</string>
+    <string name="pref_vibrate">pref_vibrate</string>
+    <string name="pref_sound">pref_sound</string>
+    <string name="pref_numbers">pref_numbers</string>
+    <string name="pref_level">pref_level</string>
 </resources>

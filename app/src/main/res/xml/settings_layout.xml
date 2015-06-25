@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:defaultValue="1"
+        android:entries="@array/dimensions_entries"
+        android:entryValues="@array/dimensions_values"
+        android:key="@string/pref_list_dimension"
+        android:summary="Select game dimensions"
+        android:title="Dimensions"
+        />
+
+    <ListPreference
+        android:defaultValue="1"
+        android:entries="@array/level_entries"
+        android:entryValues="@array/level_values"
+        android:key="@string/pref_level"
+        android:summary="Select level game"
+        android:title="Level" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="@string/pref_numbers"
+        android:summary="Display numbers on each chip"
+        android:title="Show Numbers" />
+
+    <CheckBoxPreference
+        android:defaultValue=""
+        android:key="@string/pref_sound"
+        android:summary="Play sounds"
+        android:title="Sound" />
+
+    <CheckBoxPreference
+        android:defaultValue=""
+        android:key="@string/pref_vibrate"
+        android:summary="Vibrate when chip changes"
+        android:title="Vibrate" />
+
+
+</PreferenceScreen>

@@ -4,22 +4,30 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by davasens on 6/12/2015.
  */
 public class SlidingPuzzleGame {
+    public enum CellSideType {TOP, RIGHT, BOTTOM, LEFT};
+
     private final static String LOG_TAG = SlidingPuzzleGame.class.getSimpleName();
-    private final static int HOLE = 0;
+    public final static int HOLE = 0;
 
     private int cols = 3;
     private int rows = 3;
+    private int dimension = 3;
 
     private int puzzle[][];
     private int puzzleSolution[][];
 
     private boolean finished = false;
     private List<SlidingPuzzleListener> listeners = new ArrayList<SlidingPuzzleListener>();
+
+    private int level = 1;
+
+    private int SHUFLE_ITERATIONS = 4;
 
     //Default constructor 3 X 3
     public SlidingPuzzleGame() {
@@ -30,10 +38,16 @@ public class SlidingPuzzleGame {
     public SlidingPuzzleGame(int cols, int rows) {
         this.cols = cols;
         this.rows = rows;
+        this.dimension = cols;
 
         puzzle = new int[cols][rows];
         puzzleSolution = new int[cols][rows];
 
+        setInitialOrder();
+    }
+
+
+    public void setInitialOrder() {
         int counter = 1;
 
         for (int j = 0; j < rows; j++) {
@@ -49,11 +63,18 @@ public class SlidingPuzzleGame {
         puzzleSolution[cols - 1][rows - 1] = 0;
     }
 
-
-
     public void start() {
-        shuffle2D(puzzle);
+        //shuffle2D(puzzle);
+
+        setInitialOrder();
+
+
+        //Level increment proportional to dimension and level selection
+        int levelIncrement = Double.valueOf(Math.pow(this.dimension, getLevel())).intValue();
+        int iterationsByLevel = SHUFLE_ITERATIONS + levelIncrement;
+        safeShuffle2D(puzzle, iterationsByLevel);
         finished = false;
+        Log.d(LOG_TAG, "Game started with level: " + getLevel());
     }
 
     public int getCell(int i, int j) {
@@ -65,6 +86,30 @@ public class SlidingPuzzleGame {
         }
         return result;
     }
+
+    public int getSideCell(int idStick, CellSideType cellSideType) {
+        int result = -1;
+        int[] coordsById = getCoordsById(idStick);
+        int x = coordsById[0];
+        int y = coordsById[1];
+
+        switch (cellSideType) {
+            case TOP:
+                result = getCell(x, y - 1);
+                break;
+            case RIGHT:
+                result = getCell(x + 1, y);
+                break;
+            case BOTTOM:
+                result = getCell(x, y + 1);
+                break;
+            case LEFT:
+                result = getCell(x - 1, y);
+                break;
+        }
+        return result;
+    }
+
 
     private boolean canMove(int i, int j) {
         boolean result = false;
@@ -118,7 +163,7 @@ public class SlidingPuzzleGame {
                     move(i, j);
 
                     //Trigger event Play
-					firePlayEvent();
+                    firePlayEvent();
                 } else {
                     Log.d(LOG_TAG, "can NOT be moved");
                 }
@@ -179,7 +224,7 @@ public class SlidingPuzzleGame {
 
 
     public boolean isSolved() {
-        boolean result = false; //FIXME poner a true
+        boolean result = true;
 
         for (int i = 0; i < this.cols; i++) {
             for (int j = 0; j < this.rows; j++) {
@@ -274,6 +319,51 @@ public class SlidingPuzzleGame {
 
         return array;
     }
+	
+	//Safe Puzzle shuffle
+	private int[][] safeShuffle2D(int[][] array, int iterations) {
+		int[] holePosition = getHoleCoords();
+		
+		while (iterations > 0) {
+			int side = new Random().nextInt(4) + 1;
+			int xHole = holePosition[0];
+			int yHole = holePosition[1];
+            int x = xHole;
+			int y = yHole;
+			
+			switch (side) {
+				case 1: //top
+					y = y - 1;
+				break;
+				case 2: //right
+					x = x + 1;
+				break;
+				case 3: //bottom
+					y = y + 1;
+				break;
+				case 4: //left
+					x = x - 1;
+				break;
+			}
+			
+			int cellToSwap = getCell(x, y);
+			if (cellToSwap != -1) {			
+				array[x][y] = 0; //Set hole
+                array[xHole][yHole] = cellToSwap;
+				holePosition = new int[] {x, y};
+                iterations--;
+            }
+		}
+
+        //Put hole at the corner
+        /* No garantiza solucion
+        int cornerCell = getCell(cols - 1, rows - 1);
+        array[holePosition[0]][holePosition[1]] = cornerCell;
+        array[cols-1][rows-1] = HOLE;
+        */
+
+        return array;
+    }
 
     public void registerListener(SlidingPuzzleListener listener) {
         listeners.add(listener);
@@ -284,7 +374,7 @@ public class SlidingPuzzleGame {
     }
 
     public void firePlayEvent() {
-        for (SlidingPuzzleListener listener: listeners) {
+        for (SlidingPuzzleListener listener : listeners) {
             listener.onPlayListener();
         }
         Log.d(LOG_TAG, "Event Play triggered");
@@ -292,7 +382,7 @@ public class SlidingPuzzleGame {
     }
 
     public void fireRepaintEvent() {
-        for (SlidingPuzzleListener listener: listeners) {
+        for (SlidingPuzzleListener listener : listeners) {
             listener.onRepaintListener();
         }
         Log.d(LOG_TAG, "Event Repaint triggered");
@@ -307,5 +397,19 @@ public class SlidingPuzzleGame {
         return rows;
     }
 
+    public boolean isFinished() {
+        return finished;
+    }
 
+    public void setFinished(boolean finished) {
+        this.finished = finished;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
 }
