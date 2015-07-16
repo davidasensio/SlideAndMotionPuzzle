@@ -2,6 +2,7 @@ package com.handysparksoft.slideandmotionpuzzle;
 
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,11 +10,16 @@ import java.util.Random;
 /**
  * Created by davasens on 6/12/2015.
  */
-public class SlidingPuzzleGame {
+public class SlidingPuzzleGame implements Serializable {
     public enum CellSideType {TOP, RIGHT, BOTTOM, LEFT};
 
     private final static String LOG_TAG = SlidingPuzzleGame.class.getSimpleName();
-    public final static int HOLE = 0;
+
+    public static int getHoleTag() {
+        return holeTag;
+    }
+
+    private static int holeTag = 0;
 
     private int cols = 3;
     private int rows = 3;
@@ -39,6 +45,7 @@ public class SlidingPuzzleGame {
         this.cols = cols;
         this.rows = rows;
         this.dimension = cols;
+        this.holeTag = cols * rows;
 
         puzzle = new int[cols][rows];
         puzzleSolution = new int[cols][rows];
@@ -57,10 +64,6 @@ public class SlidingPuzzleGame {
                 counter++;
             }
         }
-
-        //Hole
-        puzzle[cols - 1][rows - 1] = 0;
-        puzzleSolution[cols - 1][rows - 1] = 0;
     }
 
     public void start() {
@@ -73,7 +76,7 @@ public class SlidingPuzzleGame {
         int levelIncrement = Double.valueOf(Math.pow(this.dimension, getLevel())).intValue();
         int iterationsByLevel = SHUFLE_ITERATIONS + levelIncrement;
         safeShuffle2D(puzzle, iterationsByLevel);
-        finished = false;
+        this.finished = false;
         Log.d(LOG_TAG, "Game started with level: " + getLevel());
     }
 
@@ -90,22 +93,24 @@ public class SlidingPuzzleGame {
     public int getSideCell(int idStick, CellSideType cellSideType) {
         int result = -1;
         int[] coordsById = getCoordsById(idStick);
-        int x = coordsById[0];
-        int y = coordsById[1];
+        if (coordsById != null) {
+            int x = coordsById[0];
+            int y = coordsById[1];
 
-        switch (cellSideType) {
-            case TOP:
-                result = getCell(x, y - 1);
-                break;
-            case RIGHT:
-                result = getCell(x + 1, y);
-                break;
-            case BOTTOM:
-                result = getCell(x, y + 1);
-                break;
-            case LEFT:
-                result = getCell(x - 1, y);
-                break;
+            switch (cellSideType) {
+                case TOP:
+                    result = getCell(x, y - 1);
+                    break;
+                case RIGHT:
+                    result = getCell(x + 1, y);
+                    break;
+                case BOTTOM:
+                    result = getCell(x, y + 1);
+                    break;
+                case LEFT:
+                    result = getCell(x - 1, y);
+                    break;
+            }
         }
         return result;
     }
@@ -114,7 +119,7 @@ public class SlidingPuzzleGame {
     private boolean canMove(int i, int j) {
         boolean result = false;
 
-        if (getCell(i + 1, j) == HOLE || getCell(i, j + 1) == HOLE || getCell(i - 1, j) == HOLE || getCell(i, j - 1) == HOLE) {
+        if (getCell(i + 1, j) == getHoleTag() || getCell(i, j + 1) == getHoleTag() || getCell(i - 1, j) == getHoleTag() || getCell(i, j - 1) == getHoleTag()) {
             result = true;
         }
         return result;
@@ -133,17 +138,17 @@ public class SlidingPuzzleGame {
     private void move(int i, int j) {
         int cellValue = getCell(i, j);
 
-        if (getCell(i + 1, j) == HOLE) {
+        if (getCell(i + 1, j) == getHoleTag()) {
             puzzle[i + 1][j] = cellValue;
-        } else if (getCell(i, j + 1) == HOLE) {
+        } else if (getCell(i, j + 1) == getHoleTag()) {
             puzzle[i][j + 1] = cellValue;
-        } else if (getCell(i - 1, j) == HOLE) {
+        } else if (getCell(i - 1, j) == getHoleTag()) {
             puzzle[i - 1][j] = cellValue;
-        } else if (getCell(i, j - 1) == HOLE) {
+        } else if (getCell(i, j - 1) == getHoleTag()) {
             puzzle[i][j - 1] = cellValue;
         }
 
-        puzzle[i][j] = HOLE;
+        puzzle[i][j] = getHoleTag();
     }
 
     ;
@@ -210,7 +215,7 @@ public class SlidingPuzzleGame {
 
         for (int i = 0; i < this.cols; i++) {
             for (int j = 0; j < this.rows; j++) {
-                if (!finded && puzzle[i][j] == HOLE) {
+                if (!finded && puzzle[i][j] == getHoleTag()) {
                     result = new int[2];
                     result[0] = i;
                     result[1] = j;
@@ -256,7 +261,7 @@ public class SlidingPuzzleGame {
         if (coordsById != null) {
             int i = coordsById[0];
             int j = coordsById[1];
-            if (getCell(i + 1, j) == HOLE || getCell(i - 1, j) == HOLE) {
+            if (getCell(i + 1, j) == getHoleTag() || getCell(i - 1, j) == getHoleTag()) {
                 result = true;
             }
         }
@@ -271,7 +276,7 @@ public class SlidingPuzzleGame {
         if (coordsById != null) {
             int i = coordsById[0];
             int j = coordsById[1];
-            if (getCell(i, j + 1) == HOLE || getCell(i, j - 1) == HOLE) {
+            if (getCell(i, j + 1) == getHoleTag() || getCell(i, j - 1) == getHoleTag()) {
                 result = true;
             }
         }
@@ -348,7 +353,7 @@ public class SlidingPuzzleGame {
 			
 			int cellToSwap = getCell(x, y);
 			if (cellToSwap != -1) {			
-				array[x][y] = 0; //Set hole
+				array[x][y] = getHoleTag(); //Set hole
                 array[xHole][yHole] = cellToSwap;
 				holePosition = new int[] {x, y};
                 iterations--;
@@ -359,7 +364,7 @@ public class SlidingPuzzleGame {
         /* No garantiza solucion
         int cornerCell = getCell(cols - 1, rows - 1);
         array[holePosition[0]][holePosition[1]] = cornerCell;
-        array[cols-1][rows-1] = HOLE;
+        array[cols-1][rows-1] = getHoleTag();
         */
 
         return array;
@@ -412,4 +417,29 @@ public class SlidingPuzzleGame {
     public void setLevel(int level) {
         this.level = level;
     }
+
+    public String getSnapshot() {
+        StringBuilder result = new StringBuilder();
+        String separator = "";
+        for (int j = 0; j < rows; j++) {
+            for (int i = 0; i < cols; i++) {
+                result.append(separator).append(puzzle[i][j]);
+                separator = ",";
+            }
+        }
+
+        return result.toString();
+    }
+
+    public void setFromSnapshot(String snapshot) {
+        String[] snapshotArray = snapshot.split(",");
+        int counter = 0;
+        for (int j = 0; j < rows; j++) {
+            for (int i = 0; i < cols; i++) {
+                puzzle[i][j] = Integer.valueOf(snapshotArray[counter++]);
+            }
+        }
+    }
+
+
 }

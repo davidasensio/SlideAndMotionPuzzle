@@ -27,13 +27,15 @@ import android.widget.Toast;
 	1 OK - Desordenacion correcta
 	3 OK - Fluidez al mover --> glue effect --> metodos con dto
 	5 OK - Mostrar ultima celda al solucionar
-	9 - Mover con toques (acelerometro) o con inclinación
-	12 - Mejorar el padding
+	22 OK - Mantener orden y repintar al cambiar orientación
+	9 OK - Mover con toques
+	9 a  - Mover con (acelerometro) o con inclinación
+	12 OK - Mejorar el padding
 	2 - Tiempo y puntuación
 	4 - Ayuda / Acerca de...	
 	6 - Tema full screen niño / adultos
 	7 - upload foto
-	8 - Seleccionar nivel
+	8 OK - Seleccionar nivel
 	10 - Transformación de foto segun ancho y alto
 	11 - Puntuación como en Senku	
 	13 - Ver puzzle resuelto
@@ -46,23 +48,19 @@ import android.widget.Toast;
 	20 - Retar
 	21 OK - setTag/getTag for buttons
 	
-	2X - Preferencias:
+	2X - OK Preferencias:
 		 + 3x3, 4x4, 5x5
 		 + Mostrar numeros
 		 + Sonido
 		 + Vibracion
 		 + Nivel
-	
-	
 */
 public class MainActivity extends ActionBarActivity implements SlidingPuzzleListener {
 
     private boolean initialized = false;
     private SlidingPuzzleGame slidingPuzzleGame;
-    private int cols;
-    private int rows;
 
-    public static int PADDING = 4;
+    public static int PADDING = 3;
     private View.OnClickListener stickOnClickListener;
 
 
@@ -74,11 +72,18 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     private boolean mustVibrate = true;
 
+    private Bundle lastSavedInstanceState = null;
+
+    //private AbsoluteLayout absoluteLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (savedInstanceState != null) {
+            lastSavedInstanceState = savedInstanceState;
+        }
         init();
     }
 
@@ -116,7 +121,22 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     @Override
     protected void onPause() {
+        //try {
+        //    unregisterReceiver(br);
+        //    unregisterReceiver(br);
+        //} catch (Exception e) {
+        //    e.printStackTrace();
+        //}
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean("initialized", initialized);
+        outState.putBoolean("finished", slidingPuzzleGame.isFinished());
+        outState.putString("snapshot", slidingPuzzleGame.getSnapshot());
     }
 
     @Override
@@ -153,8 +173,6 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         //Init game
         int selectedDimension = getPreferenceDimension();
         slidingPuzzleGame = new SlidingPuzzleGame(selectedDimension, selectedDimension);
-        cols = slidingPuzzleGame.getCols();
-        rows = slidingPuzzleGame.getRows();
 
         stickOnClickListener = new View.OnClickListener() {
             @Override
@@ -163,22 +181,53 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
             }
         };
 
-
         slidingPuzzleGame.registerListener(this);
 
-        AbsoluteLayout absoluteLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        absoluteLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            protected void finalize() throws Throwable {
+                super.finalize();
+            }
+
             @Override
             public void onGlobalLayout() {
                 if (!initialized) {
                     initialized = true;
+
+                    if (lastSavedInstanceState != null) {
+                        String snapshot = lastSavedInstanceState.getString("snapshot");
+                        Boolean finished = lastSavedInstanceState.getBoolean("finished");
+                        slidingPuzzleGame.setFromSnapshot(snapshot);
+                        slidingPuzzleGame.setFinished(finished);
+                                //hideLastButton();
+                        //repaintGame();
+                        //paintButtons();
+                        initialized = lastSavedInstanceState.getBoolean("initialized");
+                        lastSavedInstanceState = null;
+                    }
                     paintButtons();
 
                     //Numbers preference
                     setNumbersVisible(getPreferenceNumbers());
+
+                    repaintGame();
+                    //hideLastButton();
+
                 }
             }
+
+
+        };
+
+        AbsoluteLayout absoluteLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
+        absoluteLayout.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+        absoluteLayout.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                repaintGame();
+            }
         });
+
 
         //Vibrate preference
         vibrator = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
@@ -188,10 +237,15 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     }
 
     private void actionStart() {
+        //forceInit();
+
         slidingPuzzleGame.setLevel(getPreferenceLevel());
         hideLastButton();
         slidingPuzzleGame.start();
+        //paintButtons();
         repaintGame();
+        //slidingPuzzleGame.setFinished(false);
+
     }
 
     private void paintButtons() {
@@ -201,11 +255,11 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         Bitmap bitMap = BitmapFactory.decodeResource(getResources(), R.drawable.climbing);
 
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * PADDING);
-        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * PADDING);
+        int wLayout = mainLayout.getMeasuredWidth() ;//- ((cols - 1) * PADDING);
+        int hLayout = mainLayout.getMeasuredHeight();// - ((rows - 1) * PADDING);
         int wButton = getStickWidth();
         int hButton = getStickHeight();
-        PADDING = 0;
+        //PADDING = 0;
         int counter = 1;
         int dimension = getPreferenceDimension();
 
@@ -213,16 +267,15 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
         //Add buttons (Sticks)
 
-        for (int j = 0; j < rows; j++) {
-            for (int i = 0; i < cols; i++) {
+        for (int j = 0; j < slidingPuzzleGame.getRows(); j++) {
+            for (int i = 0; i < slidingPuzzleGame.getCols(); i++) {
 
 
-                final Button button = new Button(this);
+                Button button = new Button(this);
                 int x = (i * wButton);
                 int y = (j * hButton);
                 AbsoluteLayout.LayoutParams lp = new AbsoluteLayout.LayoutParams(wButton, hButton, x, y);
                 button.setLayoutParams(lp);
-                button.setTag(String.valueOf(counter++));
                 button.setTextSize(35 - (dimension * 3));
                 button.setTextColor(Color.LTGRAY);
 
@@ -234,11 +287,17 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
                 Drawable buttonBackground = new BitmapDrawable(getResources(), square).getCurrent();
                 button.setBackgroundDrawable(buttonBackground);
 
-
+                //Set Tag
+                //button.setTag(slidingPuzzleGame.getCell(i, j));
+				int tagId = counter++;
+				button.setTag(tagId);
 
                 mainLayout.addView(button);
+                int holeButtonCoords[] = slidingPuzzleGame.getHoleCoords();
 
-                if (i == cols - 1 && j == rows - 1) {
+                //if (i == holeButtonCoords[0]  && j ==  holeButtonCoords[1] ) {
+                //if (slidingPuzzleGame.getCell(i,j) == slidingPuzzleGame.getHoleTag()) {
+                if (i == slidingPuzzleGame.getCols() -1 && j == slidingPuzzleGame.getRows()-1) {
                     button.setVisibility(View.INVISIBLE);
                     holeButtonBackground = buttonBackground;
                     holeButton = button;
@@ -255,7 +314,16 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
                     button.setOnClickListener(stickOnClickListener);
                     button.setOnTouchListener(stickOnTouchListener);
+
                 }
+                int[] btnPosition = slidingPuzzleGame.getCoordsById(tagId);
+                if (btnPosition != null) {
+                    int iPos = btnPosition[0];
+                    int jPos = btnPosition[1];
+                    paintViewAt(button, iPos, jPos);
+                }
+
+
             }
         }
     }
@@ -270,8 +338,8 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     }
 
     private void setNumbersVisible(boolean value) {
-        for (int j = 0; j < rows; j++) {
-            for (int i = 0; i < cols; i++) {
+        for (int j = 0; j < slidingPuzzleGame.getRows(); j++) {
+            for (int i = 0; i < slidingPuzzleGame.getCols(); i++) {
 
                 int idButton = slidingPuzzleGame.getCell(i, j);
                 Button button = findButtonByTag(idButton);
@@ -288,36 +356,47 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     private void repaintGame() {
 
-        for (int j = 0; j < rows; j++) {
-            for (int i = 0; i < cols; i++) {
+        for (int j = 0; j < slidingPuzzleGame.getRows(); j++) {
+            for (int i = 0; i < slidingPuzzleGame.getCols(); i++) {
 
                 int idButton = slidingPuzzleGame.getCell(i, j);
                 Button button = findButtonByTag(idButton);
-                if (button != null) {
-                    paintViewAt(button, i, j);
+                if (button != null){
+                    //if (idButton != slidingPuzzleGame.getHoleTag()) {
+                        paintViewAt(button, i, j);
+                    //}
                 }
             }
         }
+
+        if (slidingPuzzleGame.isFinished()) {
+            paintLastButton();
+        }
+
+        //hideLastButton();
     }
 
     private void paintViewAt(View view, int i, int j) {
-        view.setX(getStickWidth() * i);
-        view.setY(getStickHeight() * j);
+        int baseWidth = view.getWidth();
+        int baseHeight = view.getHeight();
+
+        view.setX(baseWidth * i + (PADDING * i));
+        view.setY(baseHeight * j + (PADDING * j));
     }
 
     private int getStickWidth() {
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int wLayout = mainLayout.getMeasuredWidth() - ((cols - 1) * PADDING);
+        int wLayout = mainLayout.getMeasuredWidth(); // - ((cols - 1) * PADDING);
 
-        int wButton = wLayout / cols;
+        int wButton = wLayout / slidingPuzzleGame.getCols();
 
         return wButton;
     }
 
     private int getStickHeight() {
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
-        int hLayout = mainLayout.getMeasuredHeight() - ((rows - 1) * PADDING);
-        int hButton = hLayout / rows;
+        int hLayout = mainLayout.getMeasuredHeight();// - ((rows - 1) * PADDING);
+        int hButton = hLayout / slidingPuzzleGame.getRows();
 
         return hButton;
     }
@@ -356,7 +435,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
     private void paintLastButton() {
         holeButton.setBackgroundDrawable(holeButtonBackground);
-        paintViewAt(holeButton,cols -1, rows-1);
+        paintViewAt(holeButton,slidingPuzzleGame.getCols() - 1, slidingPuzzleGame.getRows() - 1);
         holeButton.setVisibility(View.VISIBLE);
     }
 

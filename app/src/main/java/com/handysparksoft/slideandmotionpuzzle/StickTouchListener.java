@@ -100,17 +100,17 @@ public class StickTouchListener implements View.OnTouchListener {
                         boolean leftToRight = currX > mPrevX;
                         boolean topToBottom = currY > mPrevY;
                         if (Math.abs(currX - mPrevX) > (v.getWidth() / 2)) {
-                            if (leftToRight && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.RIGHT) == SlidingPuzzleGame.HOLE) {
+                            if (leftToRight && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.RIGHT) == SlidingPuzzleGame.getHoleTag()) {
                                 slidingPuzzleGame.play(idButton);
-                            } else if (!leftToRight && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.LEFT) == SlidingPuzzleGame.HOLE) {
+                            } else if (!leftToRight && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.LEFT) == SlidingPuzzleGame.getHoleTag()) {
                                 slidingPuzzleGame.play(idButton);
                             } else {
                                 slidingPuzzleGame.fireRepaintEvent();
                             }
                         } else if (Math.abs(mPrevY - currY) > (v.getHeight() / 2)) {
-                            if (topToBottom && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.BOTTOM) == SlidingPuzzleGame.HOLE) {
+                            if (topToBottom && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.BOTTOM) == SlidingPuzzleGame.getHoleTag()) {
                                 slidingPuzzleGame.play(idButton);
-                            } else if (!topToBottom && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.TOP) == SlidingPuzzleGame.HOLE) {
+                            } else if (!topToBottom && slidingPuzzleGame.getSideCell(idButton, SlidingPuzzleGame.CellSideType.TOP) == SlidingPuzzleGame.getHoleTag()) {
                                 slidingPuzzleGame.play(idButton);
                             } else {
                                 slidingPuzzleGame.fireRepaintEvent();
