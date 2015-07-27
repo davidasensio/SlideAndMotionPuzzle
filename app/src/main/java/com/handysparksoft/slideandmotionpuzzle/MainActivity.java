@@ -10,9 +10,11 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,22 +22,16 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.AbsoluteLayout;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 /*
     TODO:
-	1 OK - Desordenacion correcta
-	3 OK - Fluidez al mover --> glue effect --> metodos con dto
-	5 OK - Mostrar ultima celda al solucionar
-	22 OK - Mantener orden y repintar al cambiar orientación
-	9 OK - Mover con toques
 	9 a  - Mover con (acelerometro) o con inclinación
-	12 OK - Mejorar el padding
 	2 - Tiempo y puntuación
 	4 - Ayuda / Acerca de...	
 	6 - Tema full screen niño / adultos
 	7 - upload foto
-	8 OK - Seleccionar nivel
 	10 - Transformación de foto segun ancho y alto
 	11 - Puntuación como en Senku	
 	13 - Ver puzzle resuelto
@@ -46,10 +42,19 @@ import android.widget.Toast;
 	18 - Modo juego contra-reloj
 	19 - Temas: Frozen, Disney, Cars, Bob Esponja, Pepa Pig, Sports, Paisajes, Monumentos, 
 	20 - Retar
+	
+	1 OK - Desordenacion correcta
+	3 OK - Fluidez al mover --> glue effect --> metodos con dto
+	5 OK - Mostrar ultima celda al solucionar
+	22 OK - Mantener orden y repintar al cambiar orientación
+	9 OK - Mover con toques
+	12 OK - Mejorar el padding
+	7a OK - Action SEND picture
+	8 OK - Seleccionar nivel
 	21 OK - setTag/getTag for buttons
 	
 	2X - OK Preferencias:
-		 + 3x3, 4x4, 5x5
+		 + 3x3, 4x4, 5x5, custom
 		 + Mostrar numeros
 		 + Sonido
 		 + Vibracion
@@ -79,7 +84,18 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
         setContentView(R.layout.activity_main);
+
+        if (action.equals(Intent.ACTION_SEND)) {
+            handleSendImage(intent);
+        }else if (action.equals(Intent.ACTION_MAIN)) {
+
+        }
 
         if (savedInstanceState != null) {
             lastSavedInstanceState = savedInstanceState;
@@ -100,6 +116,35 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
             }
         }
     };
+
+    void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            // Update UI to reflect text being shared
+        }
+    }
+
+    void handleSendImage(Intent intent) {
+        Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (imageUri != null) {
+            // Update UI to reflect image being shared
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+            //imageView.setImageURI(imageUri);
+
+            //Bitmap myImg = BitmapFactory.decodeStream(new URL(imageUri.get).openStream());
+            try {
+
+                Bitmap myImg = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                //Matrix matrix = new Matrix();
+                //matrix.postRotate(90);
+                //Bitmap rotated = Bitmap.createBitmap(myImg, 0, 0, myImg.getWidth(), myImg.getHeight(), matrix, true);
+
+                imageView.setImageBitmap(myImg);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void forceInit() {
         setContentView(R.layout.activity_main);
@@ -252,7 +297,16 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
 
         //Drawable drawable = getDrawable(R.drawable.climbing);
         //BitmapDrawable drawable = new BitmapDrawable(getResources(), R.drawable.climbing);
+        //Default Image
         Bitmap bitMap = BitmapFactory.decodeResource(getResources(), R.drawable.climbing);
+
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        if (imageView != null) {
+            BitmapDrawable drawable = (BitmapDrawable) (imageView).getDrawable();
+            if (drawable != null) {
+                bitMap = drawable.getBitmap();
+            }
+        }
 
         AbsoluteLayout mainLayout = (AbsoluteLayout) findViewById(R.id.layoutMain);
         int wLayout = mainLayout.getMeasuredWidth() ;//- ((cols - 1) * PADDING);

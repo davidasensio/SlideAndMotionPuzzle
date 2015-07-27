@@ -23,7 +23,7 @@ public class StickTouchListener implements View.OnTouchListener {
     private Long lastDownEvent = null;
 
     private static int PROXIMITY_THRESHOLD = 25;
-    private static int TOUCH_CLICK_THRESHOLD = 200;
+    private static int TOUCH_CLICK_THRESHOLD = 350;
 
     boolean isMoving = false;
 
