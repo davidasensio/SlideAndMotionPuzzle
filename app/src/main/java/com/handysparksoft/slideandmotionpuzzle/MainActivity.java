@@ -31,7 +31,6 @@ import android.widget.Toast;
 	2 - Tiempo y puntuación
 	4 - Ayuda / Acerca de...	
 	6 - Tema full screen niño / adultos
-	7 - upload foto
 	10 - Transformación de foto segun ancho y alto
 	11 - Puntuación como en Senku	
 	13 - Ver puzzle resuelto
@@ -42,6 +41,9 @@ import android.widget.Toast;
 	18 - Modo juego contra-reloj
 	19 - Temas: Frozen, Disney, Cars, Bob Esponja, Pepa Pig, Sports, Paisajes, Monumentos, 
 	20 - Retar
+	7 - Pick picture
+	23 - Save last URI in preferences
+	24 - Muestra una pista: Resaltar un cuadrado no ubicado y animarlo hacia su posición correcta
 	
 	1 OK - Desordenacion correcta
 	3 OK - Fluidez al mover --> glue effect --> metodos con dto
@@ -78,6 +80,8 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     private boolean mustVibrate = true;
 
     private Bundle lastSavedInstanceState = null;
+
+    private Uri imageUri = null;
 
     //private AbsoluteLayout absoluteLayout;
 
@@ -125,7 +129,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
     }
 
     void handleSendImage(Intent intent) {
-        Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
         if (imageUri != null) {
             // Update UI to reflect image being shared
             ImageView imageView = (ImageView) findViewById(R.id.imageView);
@@ -206,6 +210,12 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         }
         if (id == R.id.action_start) {
             actionStart();
+        }
+
+        if (id == R.id.action_show_image) {
+            Intent intent = new Intent(this, ShowCurrentImage.class);
+            intent.putExtra("current_image_uri", imageUri);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -299,6 +309,7 @@ public class MainActivity extends ActionBarActivity implements SlidingPuzzleList
         //BitmapDrawable drawable = new BitmapDrawable(getResources(), R.drawable.climbing);
         //Default Image
         Bitmap bitMap = BitmapFactory.decodeResource(getResources(), R.drawable.climbing);
+        imageUri = Uri.parse("android.resource://" + this.getPackageName() + "/" + R.drawable.climbing);
 
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
         if (imageView != null) {

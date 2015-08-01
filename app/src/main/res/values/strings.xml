@@ -48,4 +48,6 @@
     <string name="pref_sound">pref_sound</string>
     <string name="pref_numbers">pref_numbers</string>
     <string name="pref_level">pref_level</string>
+    <string name="title_activity_show_current_image">ShowCurrentImage</string>
+    <string name="show_current_image">Show image</string>
 </resources>
