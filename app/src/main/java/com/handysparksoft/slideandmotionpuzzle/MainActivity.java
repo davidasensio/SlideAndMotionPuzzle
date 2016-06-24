@@ -58,7 +58,7 @@ import android.widget.Toast;
 	2X - OK Preferencias:
 		 + 3x3, 4x4, 5x5, custom
 		 + Mostrar numeros
-		 + Sonidos
+		 + Sonido
 		 + Vibracion
 		 + Nivel
 */
